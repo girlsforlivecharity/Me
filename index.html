@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CASH MONEY</title>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+<style>
+body { font-family:'Roboto',sans-serif; margin:0; padding:0; background:linear-gradient(to right,#f0f4f8,#d9e2ec); color:#333; }
+h1,h2,h3,h4{ margin:10px 0; }
+.container{ background:#fff; padding:30px; margin:40px auto; border-radius:15px; width:90%; max-width:400px; box-shadow:0 8px 20px rgba(0,0,0,0.15); text-align:center; transition: all 0.3s ease; }
+input{ width:90%; padding:12px; margin:10px 0; border-radius:8px; border:1px solid #ccc; font-size:16px; }
+button{ padding:12px 25px; margin:8px; border:none; border-radius:10px; font-size:16px; cursor:pointer; transition:0.3s; }
+button:hover{ opacity:0.9; }
+.primary{ background:#28a745; color:#fff; }
+.secondary{ background:#007bff; color:#fff; }
+.danger{ background:#dc3545; color:#fff; }
+a{ color:#007bff; text-decoration:none; display:block; margin:10px 0; cursor:pointer; }
+.message{ color:green; margin-top:10px; }
+.error{ color:red; margin-top:10px; }
+.plan-btn{ width:100%; padding:15px; font-size:16px; margin:10px 0; border-radius:10px; background:#ffc107; color:#333; font-weight:bold; }
+.plan-btn:hover{ background:#e0a800; }
+.account-box{ background:#f1f1f1; padding:10px; border-radius:8px; margin:10px 0; display:flex; justify-content:space-between; align-items:center; }
+.modal{ display:none; position:fixed; z-index:999; left:0; top:0; width:100%; height:100%; overflow:auto; background-color: rgba(0,0,0,0.5);}
+.modal-content{ background:#fff; margin:15% auto; padding:20px; border-radius:12px; width:80%; max-width:350px; text-align:center; box-shadow:0 5px 15px rgba(0,0,0,0.3);}
+.modal-close{ background:#28a745; color:#fff; border:none; padding:10px 20px; border-radius:8px; cursor:pointer; margin-top:15px;}
+.modal-close:hover{ opacity:0.9; }
+</style>
+</head>
+<body>
+
+<h1 style="text-align:center; color:#28a745;">CASH MONEY</h1>
+<p style="text-align:center; font-size:18px; color:#555;">Invest your money for a good profit</p>
+
+<!-- Home Page -->
+<div class="container" id="homePage">
+  <h2>Welcome to Cash Money, Home of Profits</h2>
+  <button class="primary" onclick="showSignUp()">Sign Up</button>
+  <button class="secondary" onclick="showSignIn()">Sign In</button>
+</div>
+
+<!-- Sign Up Page -->
+<div class="container" id="signUpPage" style="display:none;">
+  <h2>Sign Up</h2>
+  <input type="text" id="name" placeholder="Full Name">
+  <input type="text" id="username" placeholder="Username">
+  <input type="email" id="email" placeholder="Email">
+  <input type="text" id="phone" placeholder="Phone Number">
+  <input type="text" id="country" placeholder="Country">
+  <input type="text" id="state" placeholder="State">
+  <input type="password" id="password" placeholder="Password">
+  <button class="primary" onclick="signUp()">Submit</button>
+  <a onclick="backToHome()">Back</a>
+  <div id="signUpMessage" class="message"></div>
+</div>
+
+<!-- Sign In Page -->
+<div class="container" id="signInPage" style="display:none;">
+  <h2>Sign In</h2>
+  <input type="email" id="loginEmail" placeholder="Email">
+  <input type="password" id="loginPassword" placeholder="Password">
+  <button class="primary" onclick="signIn()">Login</button>
+  <a onclick="resetPassword()">Forgot Password?</a>
+  <a onclick="backToHome()">Back</a>
+  <div id="signInMessage" class="error"></div>
+</div>
+
+<!-- Dashboard & Subscription -->
+<div class="container" id="dashboardPage" style="display:none;">
+  <h1>CASH MONEY</h1>
+  <p>Invest your money for a good profit</p>
+  <h3 id="welcomeUser"></h3>
+  <h4>Main Balance: ₦<span id="mainBalance">0</span></h4>
+  <button class="danger" onclick="logout()">Logout</button>
+
+  <h3>Investment Plans</h3>
+  <button class="plan-btn" onclick="choosePlan('weekly')">Weekly Plan (Min ₦2000)</button>
+  <button class="plan-btn" onclick="choosePlan('monthly')">Monthly Plan (Min ₦5000)</button>
+
+  <h4>Transaction History:</h4>
+  <ul id="transactionHistory"></ul>
+
+  <h3>Subscribe / Deposit Funds</h3>
+  <h4 id="planTitle">Select a plan above</h4>
+  <input type="number" id="depositAmount" placeholder="Enter Amount (₦)">
+  <div class="account-box">
+    <span>Account: <strong id="accountNumber">88888</strong></span>
+    <button class="secondary" onclick="copyAccount()">Copy</button>
+  </div>
+  <p>Account Name: <strong>peee</strong></p>
+  <p>Bank: <strong>First Bank</strong></p>
+  <button class="primary" onclick="subscribe()">I Have Transferred It</button>
+  <div id="subscribeMessage" class="error"></div>
+</div>
+
+<!-- Success Modal -->
+<div id="successModal" class="modal">
+  <div class="modal-content">
+    <p id="modalMessage"></p>
+    <button class="modal-close" onclick="closeModal()">OK</button>
+  </div>
+</div>
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.3.0/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js"></script>
+
+<script>
+  // Initialize Firebase
+  var firebaseConfig = {
+    apiKey: "AIzaSyCx_zVPezqmm9m8gHZRztWW7qSJ3LBA6bw",
+    authDomain: "cash-money-ac838.firebaseapp.com",
+    projectId: "cash-money-ac838",
+    storageBucket: "cash-money-ac838.appspot.com",
+    messagingSenderId: "163272707247",
+    appId: "1:163272707247:web:64c1fd8cf484b52c78185a"
+  };
+  firebase.initializeApp(firebaseConfig);
+  var auth = firebase.auth();
+  var db = firebase.firestore();
+
+  var selectedPlan = '';
+  var currentUser = null;
+
+  // Navigation
+  function showSignUp(){ document.getElementById('homePage').style.display='none'; document.getElementById('signUpPage').style.display='block'; }
+  function showSignIn(){ document.getElementById('homePage').style.display='none'; document.getElementById('signInPage').style.display='block'; }
+  function backToHome(){ 
+    document.getElementById('homePage').style.display='block';
+    document.getElementById('signUpPage').style.display='none';
+    document.getElementById('signInPage').style.display='none';
+    document.getElementById('signUpMessage').innerText='';
+    document.getElementById('signInMessage').innerText='';
+  }
+
+  function showModal(message){ document.getElementById('modalMessage').innerText=message; document.getElementById('successModal').style.display='block'; }
+  function closeModal(){ document.getElementById('successModal').style.display='none'; }
+
+  // Sign Up
+  function signUp(){
+    var name=document.getElementById('name').value;
+    var username=document.getElementById('username').value;
+    var email=document.getElementById('email').value;
+    var phone=document.getElementById('phone').value;
+    var country=document.getElementById('country').value;
+    var state=document.getElementById('state').value;
+    var password=document.getElementById('password').value;
+
+    if(!name||!username||!email||!phone||!country||!state||!password){
+      document.getElementById('signUpMessage').innerText='All fields are required!';
+      return;
+    }
+
+    auth.createUserWithEmailAndPassword(email,password).then(function(userCredential){
+      var user = userCredential.user;
+      db.collection('users').doc(user.uid).set({
+        name:name,
+        username:username,
+        email:email,
+        phone:phone,
+        country:country,
+        state:state,
+        balance:0,
+        transactions:[]
+      }).then(function(){
+        user.sendEmailVerification().then(function(){
+          showModal("Sign up successful! Verification email sent to "+email);
+          backToHome();
+        });
+      });
+    }).catch(function(error){
+      document.getElementById('signUpMessage').innerText = error.message;
+    });
+  }
+
+  // Sign In
+  function signIn(){
+    var email=document.getElementById('loginEmail').value;
+    var password=document.getElementById('loginPassword').value;
+    if(!email || !password){ document.getElementById('signInMessage').innerText="Enter email and password"; return; }
+
+    auth.signInWithEmailAndPassword(email,password).then(function(userCredential){
+      var user = userCredential.user;
+      if(!user.emailVerified){
+        document.getElementById('signInMessage').innerText="Please verify your email first!";
+        auth.signOut();
+        return;
+      }
+      currentUser = user.uid;
+      db.collection('users').doc(currentUser).get().then(function(docSnap){
+        var data = docSnap.data();
+        document.getElementById('dashboardPage').style.display='block';
+        document.getElementById('homePage').style.display='none';
+        document.getElementById('signInPage').style.display='none';
+        document.getElementById('welcomeUser').innerText = "Welcome "+data.username+"!";
+        document.getElementById('mainBalance').innerText = data.balance;
+        loadTransactions(data.transactions);
+      });
+    }).catch(function(error){
+      document.getElementById('signInMessage').innerText="Incorrect credentials!";
+    });
+  }
+
+  // Password Reset
+  function resetPassword(){
+    var email=document.getElementById('loginEmail').value;
+    if(!email){ showModal("Please enter your email first."); return; }
+    auth.sendPasswordResetEmail(email).then(function(){
+      showModal("Password reset email sent to "+email);
+    }).catch(function(error){
+      showModal("Error: "+error.message);
+    });
+  }
+
+  // Logout
+  function logout(){
+    auth.signOut();
+    currentUser=null;
+    document.getElementById('dashboardPage').style.display='none';
+    backToHome();
+  }
+
+  // Load Transactions
+  function loadTransactions(transactions){
+    var ul=document.getElementById('transactionHistory');
+    ul.innerHTML='';
+    transactions.forEach(function(t){
+      var li=document.createElement('li');
+      li.innerText = "₦"+t.amount+" - "+t.plan+" plan";
+      ul.appendChild(li);
+    });
+  }
+
+  // Choose Plan
+  function choosePlan(plan){
+    selectedPlan=plan;
+    document.getElementById('planTitle').innerText = plan.charAt(0).toUpperCase()+plan.slice(1)+' Plan';
+    document.getElementById('subscribeMessage').innerText='';
+  }
+
+  // Copy Account
+  function copyAccount(){
+    var accountNumber = document.getElementById('accountNumber').innerText;
+    navigator.clipboard.writeText(accountNumber).then(function(){
+      showModal("Account number "+accountNumber+" copied to clipboard");
+    });
+  }
+
+  // Subscribe
+  function subscribe(){
+    var amount = parseInt(document.getElementById('depositAmount').value);
+    if(selectedPlan==='weekly' && amount<2000){ document.getElementById('subscribeMessage').innerText='Check value, minimum ₦2000'; return; }
+    if(selectedPlan==='monthly' && amount<5000){ document.getElementById('subscribeMessage').innerText='Check value, minimum ₦5000'; return; }
+    document.getElementById('subscribeMessage').innerText='Processing...';
+    setTimeout(function(){
+      var userRef = db.collection('users').doc(currentUser);
+      userRef.get().then(function(docSnap){
+        var data = docSnap.data();
+        var newBalance = data.balance + amount;
+        var newTransactions = data.transactions.concat([{amount:amount, plan:selectedPlan}]);
+        userRef.update({ balance:newBalance, transactions:newTransactions }).then(function(){
+          document.getElementById('mainBalance').innerText=newBalance;
+          loadTransactions(newTransactions);
+          showModal("Your fund is on the way");
+        });
+      });
+    },2000);
+  }
+
+  // Auto-login
+  auth.onAuthStateChanged(function(user){
+    if(user && user.emailVerified){
+      currentUser = user.uid;
+      db.collection('users').doc(currentUser).get().then(function(docSnap){
+        var data = docSnap.data();
+        document.getElementById('dashboardPage').style.display='block';
+        document.getElementById('homePage').style.display='none';
+        document.getElementById('welcomeUser').innerText = "Welcome "+data.username+"!";
+        document.getElementById('mainBalance').innerText = data.balance;
+        loadTransactions(data.transactions);
+      });
+    }
+  });
+</script>
+</body>
+</html>
+￼Enter
