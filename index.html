@@ -1,275 +1,141 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CASH MONEY</title>
-<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
-<style>
-  body {
-    font-family: 'Roboto', sans-serif;
-    margin: 0;
-    padding: 0;
-    background: linear-gradient(to right, #f0f4f8, #d9e2ec);
-    color: #333;
-  }
-  h1, h2, h3, h4 { margin: 10px 0; }
-  .container {
-    background:#fff; padding:30px; margin:40px auto; border-radius:15px;
-    width:90%; max-width:400px; box-shadow:0 8px 20px rgba(0,0,0,0.15); text-align:center;
-    transition: all 0.3s ease;
-  }
-  input {
-    width:90%; padding:12px; margin:10px 0; border-radius:8px; border:1px solid #ccc; font-size:16px;
-  }
-  button {
-    padding:12px 25px; margin:8px; border:none; border-radius:10px; font-size:16px;
-    cursor:pointer; transition:0.3s;
-  }
-  button:hover { opacity:0.9; }
-  .primary { background:#28a745; color:#fff; }
-  .secondary { background:#007bff; color:#fff; }
-  .danger { background:#dc3545; color:#fff; }
-  a { color:#007bff; text-decoration:none; display:block; margin:10px 0; cursor:pointer; }
-  .message { color:green; margin-top:10px; }
-  .error { color:red; margin-top:10px; }
-  .plan-btn { width:100%; padding:15px; font-size:16px; margin:10px 0; border-radius:10px; background:#ffc107; color:#333; font-weight:bold; }
-  .plan-btn:hover { background:#e0a800; }
-  .account-box { background:#f1f1f1; padding:10px; border-radius:8px; margin:10px 0; display:flex; justify-content:space-between; align-items:center; }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CASH MONEY</title>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; text-align: center; margin-top: 50px; }
+    input { padding: 10px; margin: 5px; width: 200px; }
+    button { padding: 10px 20px; margin: 10px; cursor: pointer; }
+    #message { margin-top: 20px; color: red; }
+  </style>
 </head>
 <body>
+  <h1>Welcome to CASH MONEY, home of profits!</h1>
 
-<h1 style="text-align:center; color:#28a745;">CASH MONEY</h1>
-<p style="text-align:center; font-size:18px; color:#555;">Invest your money for a good profit</p>
+  <div id="auth-section">
+    <h2>Sign Up</h2>
+    <input type="email" id="signup-email" placeholder="Email" /><br>
+    <input type="password" id="signup-password" placeholder="Password" /><br>
+    <button onclick="signUp()">Sign Up</button>
 
-<!-- Home Page -->
-<div class="container" id="homePage">
-  <h2>Welcome to Cash Money, Home of Profits</h2>
-  <button class="primary" onclick="showSignUp()">Sign Up</button>
-  <button class="secondary" onclick="showSignIn()">Sign In</button>
-</div>
+    <h2>Login</h2>
+    <input type="email" id="login-email" placeholder="Email" /><br>
+    <input type="password" id="login-password" placeholder="Password" /><br>
+    <button onclick="login()">Login</button>
 
-<!-- Sign Up Page -->
-<div class="container" id="signUpPage" style="display:none;">
-  <h2>Sign Up</h2>
-  <input type="text" id="name" placeholder="Full Name">
-  <input type="text" id="username" placeholder="Username">
-  <input type="email" id="email" placeholder="Email">
-  <input type="text" id="phone" placeholder="Phone Number">
-  <input type="text" id="country" placeholder="Country">
-  <input type="text" id="state" placeholder="State">
-  <input type="password" id="password" placeholder="Password">
-  <button class="primary" onclick="signUp()">Submit</button>
-  <a onclick="backToHome()">Back</a>
-  <div id="signUpMessage" class="message"></div>
-</div>
-
-<!-- Sign In Page -->
-<div class="container" id="signInPage" style="display:none;">
-  <h2>Sign In</h2>
-  <input type="email" id="loginEmail" placeholder="Email">
-  <input type="password" id="loginPassword" placeholder="Password">
-  <button class="primary" onclick="signIn()">Login</button>
-  <a onclick="backToHome()">Back</a>
-  <div id="signInMessage" class="error"></div>
-</div>
-
-<!-- Dashboard -->
-<div class="container" id="dashboardPage" style="display:none;">
-  <h1>CASH MONEY</h1>
-  <p>Invest your money for a good profit</p>
-  <h3 id="welcomeUser"></h3>
-  <h4>Main Balance: ₦<span id="mainBalance">0</span></h4>
-  <button class="danger" onclick="logout()">Logout</button>
-
-  <h3>Investment Plans</h3>
-  <button class="plan-btn" onclick="choosePlan('weekly')">Weekly Plan (Min ₦2000)</button>
-  <button class="plan-btn" onclick="choosePlan('monthly')">Monthly Plan (Min ₦5000)</button>
-
-  <h4>Transaction History:</h4>
-  <ul id="transactionHistory"></ul>
-</div>
-
-<!-- Subscription Page -->
-<div class="container" id="subscribePage" style="display:none;">
-  <h2 id="planTitle"></h2>
-  <input type="number" id="depositAmount" placeholder="Enter Amount (₦)">
-  <div class="account-box">
-    <span>Account: <strong id="accountNumber">88888</strong></span>
-    <button class="secondary" onclick="copyAccount()">Copy</button>
+    <div id="message"></div>
+    <button id="resendBtn" style="display:none;" onclick="resendVerification()">Resend Verification Email</button>
   </div>
-  <p>Account Name: <strong>peee</strong></p>
-  <p>Bank: <strong>First Bank</strong></p>
-  <button class="primary" onclick="subscribe()">I Have Transferred It</button>
-  <button class="danger" onclick="closeSubscribe()">Close</button>
-  <div id="subscribeMessage" class="error"></div>
-</div>
 
-<!-- Firebase SDK -->
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
-import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-analytics.js";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendEmailVerification, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-auth.js";
-import { getFirestore, doc, setDoc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
+  <div id="welcome-section" style="display:none;">
+    <h2>Welcome!</h2>
+    <p>You are logged in and email verified ✅</p>
+    <button onclick="logout()">Logout</button>
+  </div>
 
-// Firebase config
-const firebaseConfig = {
-  apiKey: "AIzaSyCx_zVPezqmm9m8gHZRztWW7qSJ3LBA6bw",
-  authDomain: "cash-money-ac838.firebaseapp.com",
-  projectId: "cash-money-ac838",
-  storageBucket: "cash-money-ac838.firebasestorage.app",
-  messagingSenderId: "163272707247",
-  appId: "1:163272707247:web:64c1fd8cf484b52c78185a",
-  measurementId: "G-Y424GX4GEP"
-};
+  <script>
+    // Firebase configuration
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_PROJECT_ID.appspot.com",
+      messagingSenderId: "YOUR_SENDER_ID",
+      appId: "YOUR_APP_ID"
+    };
 
-const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
-const auth = getAuth(app);
-const db = getFirestore(app);
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
 
-let selectedPlan = '';
-let currentUser = null;
+    function signUp() {
+      const email = document.getElementById('signup-email').value;
+      const password = document.getElementById('signup-password').value;
 
-// Navigation
-window.showSignUp = function(){ document.getElementById('homePage').style.display='none'; document.getElementById('signUpPage').style.display='block'; }
-window.showSignIn = function(){ document.getElementById('homePage').style.display='none'; document.getElementById('signInPage').style.display='block'; }
-window.backToHome = function(){ 
-  document.getElementById('homePage').style.display='block'; 
-  document.getElementById('signUpPage').style.display='none'; 
-  document.getElementById('signInPage').style.display='none'; 
-  document.getElementById('signUpMessage').innerText=''; 
-  document.getElementById('signInMessage').innerText=''; 
-}
+      auth.createUserWithEmailAndPassword(email, password)
+        .then(userCredential => {
+          const user = userCredential.user;
+          user.sendEmailVerification()
+            .then(() => {
+              document.getElementById('message').style.color = 'green';
+              document.getElementById('message').innerText = "Sign-up successful! Verification email sent. Check your inbox.";
+              document.getElementById('resendBtn').style.display = 'inline-block';
+            });
+        })
+        .catch(error => {
+          document.getElementById('message').style.color = 'red';
+          document.getElementById('message').innerText = error.message;
+        });
+    }
 
-// Sign Up
-window.signUp = async function(){
-  const name=document.getElementById('name').value;
-  const username=document.getElementById('username').value;
-  const email=document.getElementById('email').value;
-  const phone=document.getElementById('phone').value;
-  const country=document.getElementById('country').value;
-  const state=document.getElementById('state').value;
-  const password=document.getElementById('password').value;
+    function login() {
+      const email = document.getElementById('login-email').value;
+      const password = document.getElementById('login-password').value;
 
-  if(!name||!username||!email||!phone||!country||!state||!password){
-    document.getElementById('signUpMessage').innerText='All fields are required!';
-    return;
-  }
+      auth.signInWithEmailAndPassword(email, password)
+        .then(userCredential => {
+          const user = userCredential.user;
+          if (user.emailVerified) {
+            document.getElementById('auth-section').style.display = 'none';
+            document.getElementById('welcome-section').style.display = 'block';
+          } else {
+            auth.signOut();
+            document.getElementById('message').style.color = 'red';
+            document.getElementById('message').innerText = "Email not verified. Please verify your email first!";
+            document.getElementById('resendBtn').style.display = 'inline-block';
+          }
+        })
+        .catch(error => {
+          document.getElementById('message').style.color = 'red';
+          document.getElementById('message').innerText = error.message;
+        });
+    }
 
-  try{
-    const userCredential = await createUserWithEmailAndPassword(auth,email,password);
-    const user = userCredential.user;
-    await setDoc(doc(db,'users',user.uid),{ name, username, email, phone, country, state, balance:0, transactions:[] });
-    await sendEmailVerification(user);
-    document.getElementById('signUpMessage').innerText=`Welcome to Cash Money, dear ${username}! Please check your email to verify.`;
-  }catch(error){
-    document.getElementById('signUpMessage').innerText = error.message;
-  }
-}
+    function resendVerification() {
+      const email = document.getElementById('login-email').value || document.getElementById('signup-email').value;
 
-// Sign In
-window.signIn = async function(){
-  const email=document.getElementById('loginEmail').value;
-  const password=document.getElementById('loginPassword').value;
+      if (!email) {
+        document.getElementById('message').style.color = 'red';
+        document.getElementById('message').innerText = "Enter your email first to resend verification.";
+        return;
+      }
 
-  try{
-    const userCredential = await signInWithEmailAndPassword(auth,email,password);
-    const user = userCredential.user;
-    if(!user.emailVerified){ document.getElementById('signInMessage').innerText="Please verify your email first!"; await signOut(auth); return; }
+      auth.fetchSignInMethodsForEmail(email)
+        .then(methods => {
+          if (methods.length === 0) {
+            document.getElementById('message').style.color = 'red';
+            document.getElementById('message').innerText = "No account found with this email.";
+          } else {
+            auth.signInWithEmailAndPassword(email, "temporaryPassword123") // fake password just for verification email
+              .then(userCredential => {
+                const user = userCredential.user;
+                user.sendEmailVerification()
+                  .then(() => {
+                    document.getElementById('message').style.color = 'green';
+                    document.getElementById('message').innerText = "Verification email resent! Check your inbox.";
+                    auth.signOut();
+                  });
+              })
+              .catch(() => {
+                document.getElementById('message').style.color = 'red';
+                document.getElementById('message').innerText = "Unable to resend verification. Please login with correct password.";
+              });
+          }
+        });
+    }
 
-    const userDoc = await getDoc(doc(db,'users',user.uid));
-    const data = userDoc.data();
-    currentUser = user.uid;
-
-    document.getElementById('dashboardPage').style.display='block';
-    document.getElementById('signInPage').style.display='none';
-    document.getElementById('welcomeUser').innerText = `Welcome ${data.username}!`;
-    document.getElementById('mainBalance').innerText = data.balance;
-    loadTransactions(data.transactions);
-  }catch(error){
-    document.getElementById('signInMessage').innerText="Incorrect credentials!";
-  }
-}
-
-// Logout
-window.logout = function(){
-  signOut(auth);
-  currentUser=null;
-  document.getElementById('dashboardPage').style.display='none';
-  backToHome();
-}
-
-// Load Transactions
-function loadTransactions(transactions){
-  const ul=document.getElementById('transactionHistory');
-  ul.innerHTML='';
-  transactions.forEach(t=>{
-    const li=document.createElement('li');
-    li.innerText=`₦${t.amount} - ${t.plan} plan`;
-    ul.appendChild(li);
-  });
-}
-
-// Choose Plan
-window.choosePlan = function(plan){
-  selectedPlan=plan;
-  document.getElementById('dashboardPage').style.display='none';
-  document.getElementById('subscribePage').style.display='block';
-  document.getElementById('planTitle').innerText = plan.charAt(0).toUpperCase()+plan.slice(1)+' Plan';
-  document.getElementById('subscribeMessage').innerText='';
-}
-
-// Close Subscribe
-window.closeSubscribe = function(){
-  document.getElementById('subscribePage').style.display='none';
-  document.getElementById('dashboardPage').style.display='block';
-}
-
-// Copy Account Number
-window.copyAccount = function(){
-  const accountNumber = document.getElementById('accountNumber').innerText;
-  navigator.clipboard.writeText(accountNumber).then(()=>{
-    alert(`Account number ${accountNumber} copied to clipboard`);
-  }).catch(err=>{ alert('Failed to copy: '+err); });
-}
-
-// Subscribe
-window.subscribe = async function(){
-  const amount = parseInt(document.getElementById('depositAmount').value);
-  if(selectedPlan==='weekly' && amount<2000){ document.getElementById('subscribeMessage').innerText='Check value, minimum ₦2000'; return;}
-  if(selectedPlan==='monthly' && amount<5000){ document.getElementById('subscribeMessage').innerText='Check value, minimum ₦5000'; return;}
-
-  document.getElementById('subscribeMessage').innerText='Processing...';
-  setTimeout(async ()=>{
-    const userRef = doc(db,'users',currentUser);
-    const userDoc = await getDoc(userRef);
-    const data = userDoc.data();
-    const newBalance = data.balance + amount;
-    const newTransactions = [...data.transactions,{amount, plan:selectedPlan}];
-    await updateDoc(userRef,{ balance:newBalance, transactions:newTransactions });
-
-    document.getElementById('mainBalance').innerText=newBalance;
-    loadTransactions(newTransactions);
-    alert('Your fund is on the way');
-    closeSubscribe();
-  },5000);
-}
-
-// Auto login
-onAuthStateChanged(auth, async (user)=>{
-  if(user && user.emailVerified){
-    const userDoc = await getDoc(doc(db,'users',user.uid));
-    const data = userDoc.data();
-    currentUser = user.uid;
-    document.getElementById('dashboardPage').style.display='block';
-    document.getElementById('homePage').style.display='none';
-    document.getElementById('welcomeUser').innerText = `Welcome ${data.username}!`;
-    document.getElementById('mainBalance').innerText = data.balance;
-    loadTransactions(data.transactions);
-  }
-});
-</script>
+    function logout() {
+      auth.signOut().then(() => {
+        document.getElementById('auth-section').style.display = 'block';
+        document.getElementById('welcome-section').style.display = 'none';
+        document.getElementById('resendBtn').style.display = 'none';
+        document.getElementById('message').innerText = "";
+      });
+    }
+  </script>
 </body>
 </html>
